@@ -14,6 +14,7 @@ class TransacaoTile extends StatelessWidget {
         color: transacao.isReceita ? Colors.green : Colors.red,
       ),
       title: Text(transacao.descricao),
+      subtitle: Text(transacao.categoria),
       trailing: Text(
         'R\$ ${transacao.valor.toStringAsFixed(2)}',
         style: TextStyle(

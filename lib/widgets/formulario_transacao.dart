@@ -11,6 +11,16 @@ class FormularioTransacao extends StatefulWidget {
   State<FormularioTransacao> createState() => _FormularioTransacaoState();
 }
 
+final List<String> _categorias = [
+  'Assinaturas',
+  'Contas da casa',
+  'Aplicativos',
+  'Alimentação',
+  'Transporte',
+  'Outros',
+];
+String _categoriaSelecionada = 'Assinaturas';
+
 class _FormularioTransacaoState extends State<FormularioTransacao> {
   final _descricaoController = TextEditingController();
   final _valorController = MoneyMaskedTextController(
@@ -49,6 +59,7 @@ class _FormularioTransacaoState extends State<FormularioTransacao> {
     valor: valor,
     isReceita: _isReceita,
     data: _dataSelecionada ?? DateTime.now(),
+    categoria: _categoriaSelecionada,
   );
 
   widget.onSubmit(novaTransacao);
@@ -72,6 +83,22 @@ class _FormularioTransacaoState extends State<FormularioTransacao> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(labelText: 'Valor'),
               
+            ),
+
+            DropdownButtonFormField<String>(
+              value: _categoriaSelecionada,
+              decoration: const InputDecoration(labelText: 'Categoria'),
+              items: _categorias.map((categoria) {
+                return DropdownMenuItem(
+                  value: categoria,
+                  child: Text(categoria),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _categoriaSelecionada = value!;
+                });
+              },
             ),
             const SizedBox(height: 16),
             Row(

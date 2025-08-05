@@ -167,7 +167,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           title: Text(t.descricao),
                           subtitle: Text(
-                              '${t.data.day}/${t.data.month}/${t.data.year}'),
+                              '${t.categoria} • ${t.data.day}/${t.data.month}/${t.data.year}'),
                           trailing: Text(
                             'R\$ ${t.valor.toStringAsFixed(2)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
