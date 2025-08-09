@@ -4,8 +4,9 @@ import '../models/transacao.dart';
 
 class FormularioTransacao extends StatefulWidget {
   final void Function(Transacao) onSubmit;
+  final Transacao? transacaoOriginal;
 
-  const FormularioTransacao({super.key, required this.onSubmit});
+  const FormularioTransacao({super.key, required this.onSubmit, this.transacaoOriginal});
 
   @override
   State<FormularioTransacao> createState() => _FormularioTransacaoState();
@@ -19,17 +20,30 @@ final List<String> _categorias = [
   'Transporte',
   'Outros',
 ];
-String _categoriaSelecionada = 'Assinaturas';
 
 class _FormularioTransacaoState extends State<FormularioTransacao> {
-  final _descricaoController = TextEditingController();
-  final _valorController = MoneyMaskedTextController(
-  decimalSeparator: ',',
-  thousandSeparator: '.',
-  leftSymbol: 'R\$ ',
-);
+  late TextEditingController _descricaoController;
+  late MoneyMaskedTextController _valorController;
+  late String _categoriaSelecionada;
+
   bool _isReceita = true;
   DateTime? _dataSelecionada;
+
+ @override
+  void initState() {
+    super.initState();
+    final t = widget.transacaoOriginal;
+    _descricaoController = TextEditingController(text: t?.descricao ?? '');
+    _valorController = MoneyMaskedTextController(
+      decimalSeparator: ',',
+      thousandSeparator: '.',
+      leftSymbol: 'R\$ ',
+      initialValue: t?.valor ?? 0,
+    );
+    _categoriaSelecionada = t?.categoria ?? _categorias.first;
+    _isReceita = t?.isReceita ?? true;
+    _dataSelecionada = t?.data;
+  }
 
   // Função para abrir o seletor de data
   void _selecionarData() async {
@@ -137,7 +151,7 @@ class _FormularioTransacaoState extends State<FormularioTransacao> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submit,
-              child: const Text('Adicionar'),
+              child: Text(widget.transacaoOriginal == null ? 'Adicionar' : 'Salvar'),
             ),
           ],
         ),

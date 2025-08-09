@@ -17,8 +17,9 @@ class _HomePageState extends State<HomePage> {
 
   List<Transacao> get _transacoesFiltradas {
     return _transacoes.where((t) {
-      final correspondeData = (dataInicio == null || t.data.isAfter(dataInicio!.subtract(const Duration(days: 1)))) &&
-                              (dataFim == null || t.data.isBefore(dataFim!.add(const Duration(days: 1))));
+      final correspondeData =
+          (dataInicio == null || t.data.isAfter(dataInicio!.subtract(const Duration(days: 1)))) &&
+          (dataFim == null || t.data.isBefore(dataFim!.add(const Duration(days: 1))));
       return correspondeData;
     }).toList();
   }
@@ -37,18 +38,43 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _abrirFormulario() {
+  void _deletarTransacao(int index) {
+    setState(() {
+      final transacaoRemovida = _transacoesFiltradas[index];
+      _transacoes.remove(transacaoRemovida);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transação deletada')),
+    );
+  }
+
+  void _editarTransacao(Transacao transacaoOriginal, Transacao novaTransacao) {
+    setState(() {
+      final idx = _transacoes.indexOf(transacaoOriginal);
+      if (idx != -1) {
+        _transacoes[idx] = novaTransacao;
+      }
+    });
+  }
+
+  void _abrirFormulario({bool editar = false, Transacao? transacao, int? index}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: FormularioTransacao(
-            onSubmit: _adicionarTransacao,
-          ),
-        );
-      },
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: FormularioTransacao(
+          onSubmit: (novaTransacao) {
+            if (editar && transacao != null) {
+              _editarTransacao(transacao, novaTransacao);
+            } else {
+              _adicionarTransacao(novaTransacao);
+            }
+           // Navigator.of(context).pop();
+          },
+          transacaoOriginal: transacao,
+        ),
+      ),
     );
   }
 
@@ -152,7 +178,7 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 16),
 
-            // Lista de transações
+            // Lista de transações com Dismissible e opção de editar
             Expanded(
               child: _transacoesFiltradas.isEmpty
                   ? const Center(child: Text('Nenhuma transação encontrada.'))
@@ -160,17 +186,43 @@ class _HomePageState extends State<HomePage> {
                       itemCount: _transacoesFiltradas.length,
                       itemBuilder: (ctx, index) {
                         final t = _transacoesFiltradas[index];
-                        return ListTile(
-                          leading: Icon(
-                            t.isReceita ? Icons.arrow_downward : Icons.arrow_upward,
-                            color: t.isReceita ? Colors.green : Colors.red,
+                        return Dismissible(
+                          key: ValueKey('${t.descricao}_${t.data}_${t.valor}_$index'),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(Icons.delete, color: Colors.white),
                           ),
-                          title: Text(t.descricao),
-                          subtitle: Text(
-                              '${t.categoria} • ${t.data.day}/${t.data.month}/${t.data.year}'),
-                          trailing: Text(
-                            'R\$ ${t.valor.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          onDismissed: (direction) {
+                            _deletarTransacao(index);
+                          },
+                          child: ListTile(
+                            leading: Icon(
+                              t.isReceita ? Icons.arrow_downward : Icons.arrow_upward,
+                              color: t.isReceita ? Colors.green : Colors.red,
+                            ),
+                            title: Text(t.descricao),
+                            subtitle: Text(
+                                '${t.categoria} • ${t.data.day}/${t.data.month}/${t.data.year}'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () => _abrirFormulario(
+                                    editar: true,
+                                    transacao: t,
+                                    index: index,
+                                  ),
+                                ),
+                                Text(
+                                  'R\$ ${t.valor.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
